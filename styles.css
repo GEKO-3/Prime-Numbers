@@ -240,13 +240,14 @@ input[type="number"]:focus {
     margin-bottom: 15px;
 }
 
-.phone-actions {
-    display: flex;
-    gap: 10px;
-}
-
+.sold-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #ff6b6b 0%, #c92a2a 100%);
+    color: white;
+    padding: 5px 12px;
 .btn-edit,
-.btn-delete {
+.btn-delete,
+.btn-sold {
     flex: 1;
     padding: 8px 15px;
     border: none;
@@ -258,6 +259,31 @@ input[type="number"]:focus {
 }
 
 .btn-edit {
+    background: #ffd700;
+    color: #333;
+}
+
+.btn-edit:hover {
+    background: #ffed4e;
+}
+
+.btn-delete {
+    background: #ff4757;
+    color: white;
+}
+
+.btn-delete:hover {
+    background: #ff6b81;
+}
+
+.btn-sold {
+    background: #5f27cd;
+    color: white;
+}
+
+.btn-sold:hover {
+    background: #341f97;
+}btn-edit {
     background: #ffd700;
     color: #333;
 }

@@ -41,6 +41,7 @@ function addPhoneNumber(e) {
     const phoneNumber = document.getElementById('phoneNumber').value.trim();
     const price = parseFloat(document.getElementById('price').value);
     const postpaidOnly = document.getElementById('postpaidOnly').checked;
+    const sold = document.getElementById('soldStatus').checked;
 
     if (!phoneNumber || !price) {
         alert('Please fill in all fields');
@@ -52,6 +53,7 @@ function addPhoneNumber(e) {
         phoneNumber: phoneNumber,
         price: price,
         postpaidOnly: postpaidOnly,
+        sold: sold,
         createdAt: Date.now()
     });
 
@@ -72,20 +74,22 @@ function renderPhoneList(searchTerm = '') {
     if (filteredNumbers.length === 0) {
         phoneList.innerHTML = '<div class="empty-state">No phone numbers found</div>';
         return;
-    }
-
     phoneList.innerHTML = filteredNumbers.map(([id, data]) => {
         const isSelected = selectedNumbers.has(id);
         return `
-            <div class="phone-item ${isSelected ? 'selected' : ''}" onclick="toggleSelection('${id}')">
+            <div class="phone-item ${isSelected ? 'selected' : ''} ${data.sold ? 'sold' : ''}" onclick="toggleSelection('${id}')">
                 <div class="phone-number">${data.phoneNumber}</div>
                 <div class="phone-price">MVR ${data.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
                 ${data.postpaidOnly ? '<div class="postpaid-badge">Postpaid Only</div>' : ''}
+                ${data.sold ? '<div class="sold-badge">SOLD</div>' : ''}
                 <div class="phone-actions">
                     <button class="btn-edit" onclick="editPhoneNumber(event, '${id}')">Edit</button>
                     <button class="btn-delete" onclick="deletePhoneNumber(event, '${id}')">Delete</button>
+                    ${!data.sold ? `<button class="btn-sold" onclick="markAsSold(event, '${id}')">Mark Sold</button>` : ''}
                 </div>
             </div>
+        `;
+    }).join('');v>
         `;
     }).join('');
 }
@@ -129,8 +133,6 @@ function updateSelectedList() {
             </div>
         `;
     }).join('');
-}
-
 // Edit phone number
 function editPhoneNumber(event, id) {
     event.stopPropagation();
@@ -143,13 +145,29 @@ function editPhoneNumber(event, id) {
         
         if (newPrice !== null && !isNaN(parseFloat(newPrice))) {
             const postpaidConfirm = confirm('Is this postpaid only?');
+            const soldConfirm = confirm('Is this sold?');
             const phoneRef = window.dbRef(window.db, `phoneNumbers/${id}`);
             window.dbUpdate(phoneRef, {
                 phoneNumber: newPhone.trim(),
                 price: parseFloat(newPrice),
-                postpaidOnly: postpaidConfirm
+                postpaidOnly: postpaidConfirm,
+                sold: soldConfirm
             });
         }
+    }
+}
+
+// Mark as sold
+function markAsSold(event, id) {
+    event.stopPropagation();
+    
+    if (confirm('Mark this number as sold?')) {
+        const phoneRef = window.dbRef(window.db, `phoneNumbers/${id}`);
+        window.dbUpdate(phoneRef, {
+            sold: true
+        });
+    }
+}       }
     }
 }
 
