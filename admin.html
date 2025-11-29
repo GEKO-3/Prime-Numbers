@@ -7,20 +7,44 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <script>
+        // Check authentication
+        if (sessionStorage.getItem('adminAuthenticated') !== 'true') {
+            window.location.href = 'login.html';
+        }
+        
+        // Disable developer tools
+        document.addEventListener('contextmenu', (e) => e.preventDefault());
+        document.addEventListener('keydown', (e) => {
+            // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U, Ctrl+Shift+C
+            if (e.key === 'F12' || 
+                (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
+                (e.ctrlKey && e.key === 'U')) {
+                e.preventDefault();
+            }
+        });
+    </script>
     <div class="container">
         <header>
             <img src="prime numbers profile.svg" alt="Prime Numbers Logo" class="logo">
-            <h1>Prime Numbers</h1>
+            <h1>Prime Numbers - Admin Panel</h1>
+            <button onclick="logout()" class="btn-logout">Logout</button>
         </header>
 
         <main>
             <!-- Add Phone Number Section -->
             <section class="add-section">
                 <h2>Add Phone Number</h2>
-                <form id="phoneForm">
+                <div class="add-mode-tabs">
+                    <button type="button" class="tab-btn active" onclick="switchAddMode('single')">Single Number</button>
+                    <button type="button" class="tab-btn" onclick="switchAddMode('bulk')">Bulk Add (5 Numbers)</button>
+                </div>
+                
+                <!-- Single Add Form -->
+                <form id="phoneForm" class="add-form active">
                     <div class="form-group">
                         <label for="phoneNumber">Phone Number:</label>
-                        <input type="text" id="phoneNumber" placeholder="e.g., 7777777" required>
+                        <input type="text" id="phoneNumber" placeholder="e.g., 7777777 or +9607777777" required>
                     </div>
                     <div class="form-group">
                         <label for="price">Price (MVR):</label>
@@ -40,6 +64,31 @@
                     </div>
                     <button type="submit" class="btn-primary">Add Number</button>
                 </form>
+
+                <!-- Bulk Add Form -->
+                <form id="bulkForm" class="add-form">
+                    <div class="form-group">
+                        <label for="bulkNumbers">Paste Numbers (one per line):</label>
+                        <textarea id="bulkNumbers" rows="6" placeholder="Paste numbers here, one per line (max 5)
+Example:
+7777777
++9607777777
+9607777777
+7888888
+7999999" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="bulkPrice">Price (MVR) - applies to all:</label>
+                        <input type="number" id="bulkPrice" placeholder="e.g., 5000" step="0.01" required>
+                    </div>
+                    <div class="form-group checkbox-group">
+                        <label>
+                            <input type="checkbox" id="bulkPostpaidOnly">
+                            <span>Postpaid Only (applies to all)</span>
+                        </label>
+                    </div>
+                    <button type="submit" class="btn-primary">Add Numbers</button>
+                </form>
             </section>
 
             <!-- Phone Numbers List -->
@@ -54,7 +103,7 @@
             <!-- Image Generator Section -->
             <section class="generator-section">
                 <h2>Generate Image</h2>
-                <p>Select up to 10 phone numbers to generate a 5:3 ratio image</p>
+                <p>Select up to 10 phone numbers to generate a 3:5 portrait social media image</p>
                 <div class="selected-numbers">
                     <h3>Selected Numbers (<span id="selectedCount">0</span>/10):</h3>
                     <div id="selectedList"></div>
@@ -92,6 +141,33 @@
                 window.initializeApp();
             }
         });
+        
+        // Logout function
+        function logout() {
+            sessionStorage.removeItem('adminAuthenticated');
+            window.location.href = 'login.html';
+        }
+        window.logout = logout;
+        
+        // Switch between add modes
+        function switchAddMode(mode) {
+            const singleForm = document.getElementById('phoneForm');
+            const bulkForm = document.getElementById('bulkForm');
+            const tabs = document.querySelectorAll('.tab-btn');
+
+            tabs.forEach(tab => tab.classList.remove('active'));
+
+            if (mode === 'single') {
+                singleForm.classList.add('active');
+                bulkForm.classList.remove('active');
+                tabs[0].classList.add('active');
+            } else {
+                singleForm.classList.remove('active');
+                bulkForm.classList.add('active');
+                tabs[1].classList.add('active');
+            }
+        }
+        window.switchAddMode = switchAddMode;
     </script>
     <script src="app.js" defer></script>
 </body>

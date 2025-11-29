@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prime Numbers - Admin Login</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .login-box {
+            background: white;
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+        
+        .login-logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+        }
+        
+        .login-box h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+        
+        .login-box p {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .pin-input {
+            width: 100%;
+            padding: 20px;
+            font-size: 32px;
+            text-align: center;
+            letter-spacing: 20px;
+            border: 3px solid #667eea;
+            border-radius: 12px;
+            font-family: 'Silom', 'Monaco', 'Courier New', monospace;
+            margin-bottom: 20px;
+        }
+        
+        .pin-input:focus {
+            outline: none;
+            border-color: #764ba2;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+        
+        .error-message {
+            color: #ff4757;
+            font-weight: bold;
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .error-message.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <img src="prime numbers profile.svg" alt="Prime Numbers Logo" class="login-logo">
+            <h1>Admin Access</h1>
+            <p>Enter 4-digit PIN</p>
+            <form id="loginForm">
+                <input 
+                    type="password" 
+                    id="pinInput" 
+                    class="pin-input" 
+                    maxlength="4" 
+                    pattern="[0-9]{4}" 
+                    inputmode="numeric"
+                    placeholder="••••"
+                    autocomplete="off"
+                    required
+                    autofocus
+                >
+                <button type="submit" class="btn-primary">Access Admin</button>
+                <div id="errorMessage" class="error-message">Incorrect PIN</div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Admin PIN - Change this to your desired 4-digit PIN
+        const ADMIN_PIN = '1234';
+        const SESSION_KEY = 'adminAuthenticated';
+        
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const pin = document.getElementById('pinInput').value;
+            const errorMessage = document.getElementById('errorMessage');
+            
+            if (pin === ADMIN_PIN) {
+                // Store authentication in session storage
+                sessionStorage.setItem(SESSION_KEY, 'true');
+                // Redirect to admin page
+                window.location.href = 'admin.html';
+            } else {
+                // Show error
+                errorMessage.classList.add('show');
+                document.getElementById('pinInput').value = '';
+                document.getElementById('pinInput').focus();
+                
+                // Hide error after 2 seconds
+                setTimeout(() => {
+                    errorMessage.classList.remove('show');
+                }, 2000);
+            }
+        });
+        
+        // Auto-submit when 4 digits are entered
+        document.getElementById('pinInput').addEventListener('input', (e) => {
+            if (e.target.value.length === 4) {
+                setTimeout(() => {
+                    document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+                }, 300);
+            }
+        });
+    </script>
+</body>
+</html>

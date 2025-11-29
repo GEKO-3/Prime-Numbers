@@ -28,19 +28,51 @@ window.initializeViewPage = function() {
     document.getElementById('filterPostpaid').addEventListener('change', () => {
         renderPhoneList();
     });
+    
+    // Hide sold filter
+    document.getElementById('hideSold').addEventListener('change', () => {
+        renderPhoneList();
+    });
+    
+    // Sort functionality
+    document.getElementById('sortBy').addEventListener('change', () => {
+        renderPhoneList();
+    });
 };
 
 // Render phone list (view-only)
 function renderPhoneList() {
     const phoneList = document.getElementById('phoneList');
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const searchTerm = document.getElementById('searchInput').value.trim();
     const showPostpaidOnly = document.getElementById('filterPostpaid').checked;
+    const hideSold = document.getElementById('hideSold').checked;
+    const sortBy = document.getElementById('sortBy').value;
     
     // Filter phone numbers
-    const filteredNumbers = Object.entries(phoneNumbers).filter(([id, data]) => {
-        const matchesSearch = data.phoneNumber.toLowerCase().includes(searchTerm);
+    let filteredNumbers = Object.entries(phoneNumbers).filter(([id, data]) => {
+        // Search by sequence (exact match anywhere in the number)
+        const matchesSearch = searchTerm === '' || data.phoneNumber.includes(searchTerm);
         const matchesPostpaid = !showPostpaidOnly || data.postpaidOnly;
-        return matchesSearch && matchesPostpaid;
+        const matchesSoldFilter = !hideSold || !data.sold;
+        return matchesSearch && matchesPostpaid && matchesSoldFilter;
+    });
+
+    // Sort numbers
+    filteredNumbers.sort(([idA, dataA], [idB, dataB]) => {
+        switch (sortBy) {
+            case 'newest':
+                return (dataB.createdAt || 0) - (dataA.createdAt || 0);
+            case 'oldest':
+                return (dataA.createdAt || 0) - (dataB.createdAt || 0);
+            case 'priceHigh':
+                return dataB.price - dataA.price;
+            case 'priceLow':
+                return dataA.price - dataB.price;
+            case 'number':
+                return dataA.phoneNumber.localeCompare(dataB.phoneNumber);
+            default:
+                return 0;
+        }
     });
 
     if (filteredNumbers.length === 0) {

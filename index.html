@@ -5,8 +5,286 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prime Numbers - Browse Premium Numbers</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Monochrome styling for view page */
+        body.view-page {
+            background: #f5f5f5;
+            padding: 0;
+        }
+        
+        .view-page .container {
+            background: white;
+            box-shadow: none;
+        }
+        
+        .view-page header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            padding: 40px 20px;
+        }
+        
+        .view-page .logo {
+            filter: grayscale(100%) brightness(0) invert(1);
+        }
+        
+        .view-page h1 {
+            font-size: 2em;
+            margin: 0;
+        }
+        
+        .view-page h2 {
+            color: #2c3e50;
+            font-size: 1.6em;
+            margin-bottom: 20px;
+        }
+        
+        .view-page main {
+            padding: 25px 20px;
+        }
+        
+        .view-page .list-section {
+            padding: 25px 20px;
+            margin-bottom: 0;
+        }
+        
+        .view-page .phone-item {
+            background: #ffffff;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s ease;
+            padding: 20px;
+        }
+        
+        .view-page .phone-item:hover {
+            border-color: #2c3e50;
+            box-shadow: 0 8px 20px rgba(44, 62, 80, 0.15);
+        }
+        
+        .view-page .phone-number {
+            color: #2c3e50;
+            font-weight: bold;
+            font-size: 1.4em;
+            margin-bottom: 12px;
+        }
+        
+        .view-page .phone-price {
+            color: #555;
+            font-weight: 600;
+            font-size: 1.2em;
+            margin-bottom: 12px;
+        }
+        
+        .view-page .postpaid-badge,
+        .view-page .sold-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .view-page .postpaid-badge {
+            background: #34495e;
+            color: white;
+        }
+        
+        .view-page .sold-badge {
+            background: #7f8c8d;
+            color: white;
+        }
+        
+        .view-page .phone-item.sold {
+            opacity: 0.6;
+            background: #f8f9fa;
+            border-color: #bdc3c7;
+        }
+        
+        .view-page .search-bar {
+            margin-bottom: 15px;
+        }
+        
+        .view-page .search-bar input {
+            border: 2px solid #34495e;
+            padding: 14px 18px;
+            font-size: 15px;
+        }
+        
+        .view-page .search-bar input:focus {
+            border-color: #2c3e50;
+            box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
+        }
+        
+        .view-page .filter-options {
+            background: #ecf0f1;
+            border: 2px solid #bdc3c7;
+            padding: 15px 18px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .view-page .filter-options label {
+            color: #2c3e50;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .view-page .sort-options {
+            background: #ecf0f1;
+            border: 2px solid #bdc3c7;
+            padding: 15px 18px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .view-page .sort-options label {
+            color: #2c3e50;
+            font-size: 15px;
+            font-weight: bold;
+        }
+        
+        .view-page .sort-options select {
+            flex: 1;
+            padding: 10px 15px;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            background: white;
+            color: #2c3e50;
+            font-family: 'Silom', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .view-page .sort-options select:focus {
+            outline: none;
+            border-color: #2c3e50;
+        }
+        
+        .view-page .view-footer {
+            background: #2c3e50;
+            color: white;
+            padding: 25px 20px;
+            font-size: 1.1em;
+        }
+        
+        .view-page .phone-list {
+            background: #fafafa;
+            border: 2px solid #e0e0e0;
+            padding: 20px;
+            gap: 18px;
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .view-page header {
+                padding: 30px 15px;
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .view-page .logo {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .view-page h1 {
+                font-size: 1.6em;
+            }
+            
+            .view-page header p {
+                font-size: 0.85em !important;
+            }
+            
+            .view-page .filter-options {
+                padding: 12px 15px;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .view-page .filter-options label {
+                margin-left: 0 !important;
+            }
+            
+            .view-page .sort-options {
+                padding: 12px 15px;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .view-page .sort-options select {
+                width: 100%;
+            }
+            .view-page main {
+                padding: 15px 10px;
+            }
+            
+            .view-page .list-section {
+                padding: 20px 15px;
+            }
+            
+            .view-page h2 {
+                font-size: 1.4em;
+            }
+            
+            .view-page .phone-list {
+                padding: 15px;
+                gap: 15px;
+                max-height: none;
+            }
+            
+            .view-page .phone-item {
+                padding: 18px;
+            }
+            
+            .view-page .phone-number {
+                font-size: 1.3em;
+                margin-bottom: 10px;
+            }
+            
+            .view-page .phone-price {
+                font-size: 1.1em;
+                margin-bottom: 10px;
+            }
+            
+            .view-page .search-bar input {
+                padding: 12px 15px;
+                font-size: 14px;
+            }
+            
+            .view-page .filter-options {
+                padding: 12px 15px;
+            }
+            
+            .view-page .view-footer {
+                padding: 20px 15px;
+                font-size: 1em;
+            }
+            
+            .view-page .view-footer p {
+                margin: 0;
+            }
+        }
+    </style>
 </head>
-<body>
+<body class="view-page">
+    <script>
+        // Disable developer tools
+        document.addEventListener('contextmenu', (e) => e.preventDefault());
+        document.addEventListener('keydown', (e) => {
+            // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U, Ctrl+Shift+C
+            if (e.key === 'F12' || 
+                (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
+                (e.ctrlKey && e.key === 'U')) {
+                e.preventDefault();
+            }
+        });
+    </script>
     <div class="container">
         <header>
             <img src="prime numbers profile.svg" alt="Prime Numbers Logo" class="logo">
@@ -16,21 +294,34 @@
         <main>
             <!-- Browse Section -->
             <section class="list-section">
-                <h2>Browse Premium Phone Numbers</h2>
+                <h2>Browse Available Numbers</h2>
                 <div class="search-bar">
-                    <input type="text" id="searchInput" placeholder="Search phone numbers...">
+                    <input type="text" id="searchInput" placeholder="Search by sequence (e.g., 111, 7777, 123)...">
                 </div>
                 <div class="filter-options">
                     <label>
                         <input type="checkbox" id="filterPostpaid"> Show Postpaid Only
                     </label>
+                    <label style="margin-left: 20px;">
+                        <input type="checkbox" id="hideSold"> Hide Sold Numbers
+                    </label>
+                </div>
+                <div class="sort-options">
+                    <label for="sortBy">Sort by:</label>
+                    <select id="sortBy">
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="priceHigh">Price (High to Low)</option>
+                        <option value="priceLow">Price (Low to High)</option>
+                        <option value="number">Number (Ascending)</option>
+                    </select>
                 </div>
                 <div id="phoneList" class="phone-list view-only"></div>
             </section>
         </main>
 
         <footer class="view-footer">
-            <p>Contact us to purchase premium numbers</p>
+            <p>📞 Contact us to purchase premium numbers</p>
         </footer>
     </div>
 
