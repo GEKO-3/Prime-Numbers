@@ -34,6 +34,11 @@ window.initializeViewPage = function() {
         renderPhoneList();
     });
     
+    // Category filter
+    document.getElementById('categoryFilter').addEventListener('change', () => {
+        renderPhoneList();
+    });
+    
     // Sort functionality
     document.getElementById('sortBy').addEventListener('change', () => {
         renderPhoneList();
@@ -46,6 +51,7 @@ function renderPhoneList() {
     const searchTerm = document.getElementById('searchInput').value.trim();
     const showPostpaidOnly = document.getElementById('filterPostpaid').checked;
     const hideSold = document.getElementById('hideSold').checked;
+    const categoryFilter = document.getElementById('categoryFilter').value;
     const sortBy = document.getElementById('sortBy').value;
     
     // Filter phone numbers
@@ -54,7 +60,8 @@ function renderPhoneList() {
         const matchesSearch = searchTerm === '' || data.phoneNumber.includes(searchTerm);
         const matchesPostpaid = !showPostpaidOnly || data.postpaidOnly;
         const matchesSoldFilter = !hideSold || !data.sold;
-        return matchesSearch && matchesPostpaid && matchesSoldFilter;
+        const matchesCategory = !categoryFilter || data.category === categoryFilter;
+        return matchesSearch && matchesPostpaid && matchesSoldFilter && matchesCategory;
     });
 
     // Sort numbers
@@ -85,6 +92,7 @@ function renderPhoneList() {
             <div class="phone-item view-only ${data.sold ? 'sold' : ''}">
                 <div class="phone-number">${data.phoneNumber}</div>
                 <div class="phone-price">MVR ${data.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                ${data.category ? `<div class="category-badge category-${data.category.toLowerCase().replace(' ', '.')}">${data.category}</div>` : ''}
                 ${data.postpaidOnly ? '<div class="postpaid-badge">Postpaid Only</div>' : ''}
                 ${data.sold ? '<div class="sold-badge">SOLD</div>' : ''}
             </div>

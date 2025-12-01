@@ -23,9 +23,22 @@ window.initializeApp = function() {
     document.getElementById('phoneForm').addEventListener('submit', addPhoneNumber);
     document.getElementById('bulkForm').addEventListener('submit', addBulkNumbers);
 
+    // Auto-fill bulk inputs on paste
+    const firstBulkNumber = document.querySelector('.bulk-number');
+    if (firstBulkNumber) {
+        firstBulkNumber.addEventListener('paste', handleBulkPaste);
+    }
+
     // Search functionality
     document.getElementById('searchInput').addEventListener('input', (e) => {
-        renderPhoneList(e.target.value);
+        const category = document.getElementById('categoryFilter').value;
+        renderPhoneList(e.target.value, category);
+    });
+
+    // Category filter
+    document.getElementById('categoryFilter').addEventListener('change', (e) => {
+        const search = document.getElementById('searchInput').value;
+        renderPhoneList(search, e.target.value);
     });
 
     // Generate image button
@@ -34,6 +47,34 @@ window.initializeApp = function() {
     // Download button
     document.getElementById('downloadBtn').addEventListener('click', downloadImage);
 }
+
+// Handle paste of multiple numbers in bulk form
+function handleBulkPaste(e) {
+    e.preventDefault();
+    
+    const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+    const numbers = pastedText
+        .split(/[\n\r]+/)
+        .map(line => line.trim())
+        .filter(line => line.length > 0)
+        .slice(0, 5); // Max 5 numbers
+    
+    if (numbers.length > 0) {
+        const bulkNumberInputs = document.querySelectorAll('.bulk-number');
+        numbers.forEach((number, index) => {
+            if (bulkNumberInputs[index]) {
+                bulkNumberInputs[index].value = number;
+            }
+        });
+        
+        // Focus on first price field
+        const firstPriceInput = document.querySelector('.bulk-price');
+        if (firstPriceInput) {
+            firstPriceInput.focus();
+        }
+    }
+}
+
 // Clean phone number (remove country code and non-digits)
 function cleanPhoneNumber(phoneNumber) {
     // Remove all non-digit characters
@@ -53,6 +94,7 @@ function addPhoneNumber(e) {
 
     const phoneNumber = cleanPhoneNumber(document.getElementById('phoneNumber').value.trim());
     const price = parseFloat(document.getElementById('price').value);
+    const category = document.getElementById('category').value;
     const postpaidOnly = document.getElementById('postpaidOnly').checked;
     const sold = document.getElementById('soldStatus').checked;
 
@@ -75,6 +117,7 @@ function addPhoneNumber(e) {
     window.dbPush(phonesRef, {
         phoneNumber: phoneNumber,
         price: price,
+        category: category || null,
         postpaidOnly: postpaidOnly,
         sold: sold,
         createdAt: Date.now()
@@ -89,75 +132,92 @@ function addPhoneNumber(e) {
 function addBulkNumbers(e) {
     e.preventDefault();
 
-    const bulkText = document.getElementById('bulkNumbers').value.trim();
-    const price = parseFloat(document.getElementById('bulkPrice').value);
+    const category = document.getElementById('bulkCategory').value;
     const postpaidOnly = document.getElementById('bulkPostpaidOnly').checked;
 
-    if (!bulkText || !price) {
-        alert('Please fill in all fields');
-        return;
+    // Collect all number-price pairs
+    const entries = [];
+    const bulkNumbers = document.querySelectorAll('.bulk-number');
+    const bulkPrices = document.querySelectorAll('.bulk-price');
+
+    for (let i = 0; i < bulkNumbers.length; i++) {
+        const number = bulkNumbers[i].value.trim();
+        const price = bulkPrices[i].value.trim();
+
+        if (number && price) {
+            const cleanedNumber = cleanPhoneNumber(number);
+            const priceValue = parseFloat(price);
+
+            if (!cleanedNumber) {
+                alert(`Invalid phone number at position ${i + 1}`);
+                return;
+            }
+
+            if (isNaN(priceValue) || priceValue <= 0) {
+                alert(`Invalid price at position ${i + 1}`);
+                return;
+            }
+
+            entries.push({
+                phoneNumber: cleanedNumber,
+                price: priceValue
+            });
+        }
     }
 
-    // Split by newlines and clean each number
-    const numbers = bulkText
-        .split(/[\n\r]+/)
-        .map(line => cleanPhoneNumber(line.trim()))
-        .filter(num => num.length > 0);
-
-    if (numbers.length === 0) {
-        alert('No valid phone numbers found!');
-        return;
-    }
-
-    if (numbers.length > 5) {
-        alert('Maximum 5 numbers allowed at once!');
+    if (entries.length === 0) {
+        alert('Please enter at least one phone number with price');
         return;
     }
 
     // Check for duplicates within the batch
+    const numbers = entries.map(e => e.phoneNumber);
     const uniqueNumbers = [...new Set(numbers)];
     if (uniqueNumbers.length !== numbers.length) {
-        alert('Duplicate numbers found in your list!');
+        alert('Duplicate numbers found in your entries!');
         return;
     }
 
     // Check for existing numbers in database
-    const existingNumbers = uniqueNumbers.filter(num => 
-        Object.values(phoneNumbers).some(data => data.phoneNumber === num)
+    const existingNumbers = entries.filter(entry => 
+        Object.values(phoneNumbers).some(data => data.phoneNumber === entry.phoneNumber)
     );
 
     if (existingNumbers.length > 0) {
-        alert(`These numbers already exist:\n${existingNumbers.join('\n')}`);
+        alert(`These numbers already exist:\n${existingNumbers.map(e => e.phoneNumber).join('\n')}`);
         return;
     }
 
     // Add all numbers
-    let addedCount = 0;
-    uniqueNumbers.forEach(phoneNumber => {
+    entries.forEach(entry => {
         window.dbPush(phonesRef, {
-            phoneNumber: phoneNumber,
-            price: price,
+            phoneNumber: entry.phoneNumber,
+            price: entry.price,
+            category: category || null,
             postpaidOnly: postpaidOnly,
             sold: false,
             createdAt: Date.now()
         });
-        addedCount++;
     });
 
-    alert(`Successfully added ${addedCount} phone numbers!`);
+    alert(`Successfully added ${entries.length} phone numbers!`);
 
     // Clear form
     document.getElementById('bulkForm').reset();
-    document.getElementById('bulkNumbers').focus();
+    bulkNumbers[0].focus();
 }
 
 // Render phone list
-function renderPhoneList(searchTerm = '') {
+function renderPhoneList(searchTerm = '', categoryFilter = '') {
     const phoneList = document.getElementById('phoneList');
     
     // Filter phone numbers
     const filteredNumbers = Object.entries(phoneNumbers).filter(([id, data]) => {
-        return data.phoneNumber.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesSearch = data.phoneNumber.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesCategory = !categoryFilter || 
+            (categoryFilter === 'none' && !data.category) ||
+            (data.category === categoryFilter);
+        return matchesSearch && matchesCategory;
     });
 
     if (filteredNumbers.length === 0) {
@@ -169,9 +229,14 @@ function renderPhoneList(searchTerm = '') {
         const isSelected = selectedNumbers.has(id);
         return `
             <div class="phone-item ${isSelected ? 'selected' : ''} ${data.sold ? 'sold' : ''}" onclick="toggleSelection('${id}')">
-                <div class="phone-number">${data.phoneNumber}</div>
+                <div class="phone-number">
+                    ${data.phoneNumber}
+                    <button class="btn-copy" onclick="copyPhoneNumber(event, '${data.phoneNumber}')" title="Copy number">📋</button>
+                </div>
                 <div class="phone-price">MVR ${data.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                ${data.category ? `<div class="category-badge category-${data.category.toLowerCase()}">${data.category}</div>` : ''}
                 ${data.postpaidOnly ? '<div class="postpaid-badge">Postpaid Only</div>' : ''}
+                ${data.inImage ? '<div class="image-badge">In Image</div>' : ''}
                 ${data.sold ? `<div class="sold-badge">SOLD${data.customerName ? ' - ' + data.customerName : ''}</div>` : ''}
                 <div class="phone-actions">
                     <button class="btn-edit" onclick="editPhoneNumber(event, '${id}')">Edit</button>
@@ -225,28 +290,58 @@ function updateSelectedList() {
 }
 
 // Edit phone number
+// Store current edit ID
+let currentEditId = null;
+
 function editPhoneNumber(event, id) {
     event.stopPropagation();
     
     const data = phoneNumbers[id];
-    const newPhone = prompt('Edit phone number:', data.phoneNumber);
+    currentEditId = id;
     
-    if (newPhone !== null && newPhone.trim() !== '') {
-        const newPrice = prompt('Edit price (MVR):', data.price);
-        
-        if (newPrice !== null && !isNaN(parseFloat(newPrice))) {
-            const postpaidConfirm = confirm('Is this postpaid only?');
-            const soldConfirm = confirm('Is this sold?');
-            const phoneRef = window.dbRef(window.db, `phoneNumbers/${id}`);
-            window.dbUpdate(phoneRef, {
-                phoneNumber: newPhone.trim(),
-                price: parseFloat(newPrice),
-                postpaidOnly: postpaidConfirm,
-                sold: soldConfirm
-            });
-        }
-    }
+    // Populate form with current data
+    document.getElementById('editPhoneNumber').value = data.phoneNumber;
+    document.getElementById('editPrice').value = data.price;
+    document.getElementById('editCategory').value = data.category || '';
+    document.getElementById('editPostpaidOnly').checked = data.postpaidOnly || false;
+    document.getElementById('editSold').checked = data.sold || false;
+    
+    // Show modal
+    document.getElementById('editModal').style.display = 'flex';
 }
+
+function closeEditModal() {
+    document.getElementById('editModal').style.display = 'none';
+    currentEditId = null;
+}
+
+function saveEdit(event) {
+    event.preventDefault();
+    
+    if (!currentEditId) return;
+    
+    const phoneNumber = document.getElementById('editPhoneNumber').value.trim();
+    const price = parseFloat(document.getElementById('editPrice').value);
+    const category = document.getElementById('editCategory').value;
+    const postpaidOnly = document.getElementById('editPostpaidOnly').checked;
+    const sold = document.getElementById('editSold').checked;
+    
+    // Update in Firebase
+    const phoneRef = window.dbRef(window.db, `phoneNumbers/${currentEditId}`);
+    window.dbUpdate(phoneRef, {
+        phoneNumber: phoneNumber,
+        price: price,
+        category: category || null,
+        postpaidOnly: postpaidOnly,
+        sold: sold
+    });
+    
+    closeEditModal();
+}
+
+// Make functions globally accessible
+window.closeEditModal = closeEditModal;
+window.saveEdit = saveEdit;
 
 // Mark as sold
 function markAsSold(event, id) {
@@ -393,6 +488,13 @@ function downloadImage() {
         return;
     }
     
+    // Mark selected numbers as included in image
+    const updates = {};
+    selectedNumbers.forEach(id => {
+        updates[`phoneNumbers/${id}/inImage`] = true;
+    });
+    window.dbUpdate(window.dbRef(window.db), updates);
+    
     // Convert canvas to blob and download
     canvas.toBlob((blob) => {
         const url = URL.createObjectURL(blob);
@@ -403,5 +505,25 @@ function downloadImage() {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+    });
+}
+
+// Copy phone number to clipboard
+function copyPhoneNumber(event, phoneNumber) {
+    event.stopPropagation();
+    
+    navigator.clipboard.writeText(phoneNumber).then(() => {
+        // Visual feedback
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.textContent = '✓';
+        btn.style.background = '#4ade80';
+        
+        setTimeout(() => {
+            btn.textContent = originalText;
+            btn.style.background = '';
+        }, 1000);
+    }).catch(err => {
+        alert('Failed to copy: ' + err);
     });
 }
